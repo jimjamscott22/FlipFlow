@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\FlipFlow.Domain\FlipFlow.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.11.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <RootNamespace>FlipFlow.Application</RootNamespace>
+  </PropertyGroup>
+</Project>

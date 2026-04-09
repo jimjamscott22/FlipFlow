@@ -1,0 +1,13 @@
+@FlipFlow_Api_HostAddress = http://localhost:5277
+
+### Health
+GET {{FlipFlow_Api_HostAddress}}/api/health
+
+### Login with demo account
+POST {{FlipFlow_Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo@flipflow.local",
+  "password": "FlipFlow123"
+}

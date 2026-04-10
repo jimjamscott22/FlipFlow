@@ -293,7 +293,7 @@ password: FlipFlow123
 
 ### Practical note about this environment
 
-The current Codex environment does not have the `.NET` SDK or `psql` installed, so Phase 1 source code and setup files were created, but the backend was not compiled here and EF migrations were not generated locally. The commands above are the next step on a machine with the SDK installed.
+Phase 1 was scaffolded before backend verification was available in this Codex environment, so the source was created first and compilation was deferred. In the current session the frontend build was verified, while backend restore still stops early because the installed .NET SDK is missing workload resolver directories.
 
 ## What could improve later in a production SaaS version
 
@@ -308,3 +308,68 @@ The current Codex environment does not have the `.NET` SDK or `psql` installed, 
 ## Milestone Summary
 
 `feat(phase-1): scaffold modular monolith with auth, base domain model, dashboard shell, and local development setup`
+
+## Phase 2 Implementation
+
+### What was built
+
+- Authenticated item CRUD API for create, list, detail, update, and delete flows
+- Multipart photo upload endpoint with file-type and file-size validation
+- Local file cleanup support when items are deleted
+- Frontend inventory list with search and status filtering
+- Structured item intake form using React Hook Form and Zod
+- Item detail page with edit and photo upload workflows
+- Phase 2 planning docs under `docs/`
+
+### Phase 2 docs
+
+- `docs/phase-2-spec-sheet.md`
+- `docs/phase-2-implementation-plan.md`
+
+### Local development services
+
+Run PostgreSQL and pgAdmin:
+
+```bash
+docker compose up -d
+```
+
+pgAdmin defaults:
+
+```text
+url: http://localhost:5050
+email: admin@flipflow.local
+password: admin
+```
+
+PostgreSQL defaults:
+
+```text
+Host=localhost;Port=5432;Database=flipflow;Username=postgres;Password=postgres
+```
+
+### Phase 2 verification
+
+Frontend:
+
+```bash
+cd src/frontend
+npm run build
+```
+
+Backend:
+
+```bash
+cd src/backend/FlipFlow.Api
+dotnet build
+```
+
+### Practical note about this environment
+
+The frontend build was verified successfully in this Codex session.
+
+The backend could not be compiled end-to-end in this environment because the installed .NET SDK is missing workload resolver directories used during restore. The failure occurs before project compilation, so it does not currently provide code-level diagnostics. Once the local SDK installation is healthy, run `dotnet build` and generate the first migration.
+
+## Milestone Summary
+
+`feat(phase-2): add item CRUD, item detail flow, and development photo uploads`

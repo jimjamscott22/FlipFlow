@@ -39,4 +39,17 @@ public sealed class LocalFileStorageService(
             contentType,
             fileInfo.Length);
     }
+
+    public Task DeleteFileAsync(string relativePath, CancellationToken cancellationToken = default)
+    {
+        var normalizedPath = relativePath.TrimStart('/', '\\').Replace('/', Path.DirectorySeparatorChar);
+        var fullPath = Path.Combine(environment.ContentRootPath, normalizedPath);
+
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
+
+        return Task.CompletedTask;
+    }
 }

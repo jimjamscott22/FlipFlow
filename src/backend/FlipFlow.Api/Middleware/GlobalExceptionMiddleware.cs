@@ -38,6 +38,9 @@ public sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<Glob
             UnauthorizedAccessException unauthorizedException => (
                 StatusCodes.Status401Unauthorized,
                 new { message = unauthorizedException.Message }),
+            KeyNotFoundException notFoundException => (
+                StatusCodes.Status404NotFound,
+                new { message = notFoundException.Message }),
             _ => (
                 StatusCodes.Status500InternalServerError,
                 new { message = "An unexpected server error occurred." })

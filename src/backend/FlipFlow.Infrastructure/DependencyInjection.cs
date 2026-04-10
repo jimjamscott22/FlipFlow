@@ -2,6 +2,7 @@ using System.Text;
 using FlipFlow.Application.Abstractions.Auth;
 using FlipFlow.Application.Abstractions.Common;
 using FlipFlow.Application.Abstractions.Content;
+using FlipFlow.Application.Abstractions.Items;
 using FlipFlow.Application.Abstractions.Pricing;
 using FlipFlow.Infrastructure.Auth;
 using FlipFlow.Infrastructure.Data;
@@ -81,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IItemService, ItemService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<IListingContentGenerator, MockListingContentGenerator>();
         services.AddScoped<IPricingSuggestionService, RuleBasedPricingSuggestionService>();

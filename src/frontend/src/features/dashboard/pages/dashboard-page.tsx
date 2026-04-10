@@ -33,12 +33,12 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <section className="rounded-[2rem] bg-slate-950 px-8 py-10 text-white">
-        <p className="text-sm uppercase tracking-[0.3em] text-amber-300">Phase 1</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-amber-300">Phase 2</p>
         <h2 className="mt-4 text-4xl font-bold">
           {query.data ? `Welcome back, ${query.data.displayName}.` : "Loading your dashboard..."}
         </h2>
         <p className="mt-3 max-w-2xl text-slate-300">
-          Authentication, base domain model, demo seeding, and a protected dashboard are now in place.
+          Inventory CRUD and item photo uploads are now layered on top of the authenticated seller workspace.
         </p>
       </section>
 
@@ -65,11 +65,11 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Next build target</CardTitle>
-            <CardDescription>Phase 2 will add item CRUD and photo upload.</CardDescription>
+            <CardDescription>Phase 3 will add listing drafts and AI content generation.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>Backend already exposes the domain entities and storage abstraction.</p>
-            <p>Frontend route shells are ready for the item management flow.</p>
+            <p>Items now have full create, edit, detail, and upload flows.</p>
+            <p>The next layer will turn those records into reusable listing content drafts.</p>
           </CardContent>
         </Card>
 

@@ -115,7 +115,9 @@ public sealed class ItemService(
         };
 
         item.UpdatedAtUtc = DateTimeOffset.UtcNow;
-        item.Photos.Add(photo);
+        // Ids are assigned client-side, so add via the DbSet to force an INSERT
+        // (adding to the tracked item.Photos collection would be treated as an UPDATE).
+        dbContext.ItemPhotos.Add(photo);
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

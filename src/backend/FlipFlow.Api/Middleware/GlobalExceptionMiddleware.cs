@@ -22,7 +22,7 @@ public sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<Glob
     {
         context.Response.ContentType = "application/json";
 
-        var (statusCode, payload) = exception switch
+        (int StatusCode, object Payload) result = exception switch
         {
             ValidationException validationException => (
                 StatusCodes.Status400BadRequest,
@@ -46,7 +46,7 @@ public sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<Glob
                 new { message = "An unexpected server error occurred." })
         };
 
-        context.Response.StatusCode = statusCode;
-        await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+        context.Response.StatusCode = result.StatusCode;
+        await context.Response.WriteAsync(JsonSerializer.Serialize(result.Payload));
     }
 }

@@ -81,7 +81,7 @@ public static class ApiServiceCollectionExtensions
         return app.UseStaticFiles(new StaticFileOptions
         {
             FileProvider = new PhysicalFileProvider(uploadsPath),
-            RequestPath = "/uploads"
+            RequestPath = "/storage/uploads" // must match the relativePath returned by LocalFileStorageService
         });
     }
 }

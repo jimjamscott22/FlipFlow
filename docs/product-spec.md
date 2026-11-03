@@ -130,7 +130,12 @@ Replace the current placeholder cards with: items by status, needs-delisting lis
 
 ### 5.9 Settings
 
-A single settings page for LM Studio connection (base URL, model, test button), default location/pickup note text for listings, and currency symbol. Stored in the database (single row) with `appsettings` defaults.
+A single settings page, in sections. Stored in the database (single row) with `appsettings` defaults.
+
+1. **AI model (LM Studio):** base URL, model, timeout, max images per request, test-connection button.
+2. **Listing defaults:** default location/pickup note text, currency (USD) and locale (`en-US`).
+3. **Photo retention:** a mode selector (`Keep` default, `Archive`, `Delete`) and an "after N days sold" threshold. Shows a plain-language summary of what will happen (for example, "Photos of items sold more than 90 days ago will be moved to the archive") and a "Run now" button. Choosing `Delete` requires a confirmation dialog. Per-item "archive photos" and "delete photos" actions live on the item detail page, not here.
+4. **Security:** passcode on/off status (the value itself comes from configuration, not this page).
 
 ## 6. Data Model Changes
 
@@ -146,7 +151,8 @@ Current entities: `Item`, `ItemPhoto`, `ListingDraft`, `MarketplaceListing`, `Re
 | `ListingDraft` | Keep for stored AI/template drafts; add `Category`, `Brand`, `Model`, `MissingInfoJson`. |
 | `MarketplaceListing` | Statuses become `Draft`, `Active`, `Sold`, `Ended`, `NeedsDelisting`. Remove `ExternalListingId`, `PublishedAtUtc` becomes `ListedAtUtc`. |
 | `ItemComp` (new) | `ItemId`, `Price`, `Note?`, `Url?`, `SoldOnUtc?`. |
-| `AppSettings` (new, single row) | LM Studio base URL, model, timeout, default pickup note, currency. |
+| `AppSettings` (new, single row) | LM Studio base URL, model, timeout, max images per request, default pickup note, currency, locale, `PhotoRetentionMode` (`Keep` / `Archive` / `Delete`), `PhotoRetentionDays`. |
+| `ItemPhoto` (retention) | Add `ArchivedAtUtc?` so archived photos are hidden from active views but still traceable. Deleted photos have their record and file removed. |
 
 Database: SQLite file (for example `data/flipflow.db`). Decimals are stored via an EF value converter or as integer cents to avoid SQLite's lack of a native decimal type. Money handling is centralised so this choice is made once.
 
@@ -168,6 +174,7 @@ Keep the four-project layout (`Api`, `Application`, `Domain`, `Infrastructure`) 
 - LM Studio's server is only enabled for the local network on the model machine; the app never exposes it.
 - Uploaded files are validated by content type and magic bytes, not just file extension, and are served only from the uploads path.
 - Back up `data/flipflow.db` and the uploads folder together; document a one-line backup command.
+- **Backup automation (separate from the app):** an optional PowerShell script at `scripts/Backup-FlipFlow.ps1` that copies the database (using SQLite's online backup or a stop-copy-start step so the file is consistent) and the uploads folder into a timestamped zip, then prunes backups older than a configurable number of days. It is registered as a Windows Task Scheduler job by a companion `scripts/Register-BackupTask.ps1`. The app does not depend on it; it is documented in the README as the recommended way to run backups. The same approach can later cover running the app as a Windows service.
 
 ## 9. Non-Functional Requirements
 

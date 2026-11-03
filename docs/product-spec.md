@@ -163,7 +163,7 @@ Keep the four-project layout (`Api`, `Application`, `Domain`, `Infrastructure`) 
 ## 8. Security and Network Posture
 
 - The app has no login. It must therefore only be reachable on the trusted home network. Binding to `0.0.0.0` is opt-in via configuration, and the README states the risk.
-- **Recommended safeguard (confirm before building):** an optional single shared passcode, set through configuration, checked by a small middleware and remembered in a cookie. Off by default. This is far lighter than the current Identity/JWT stack but stops casual access from other devices on the network.
+- **Safeguard (confirmed, built in M1):** an optional single shared passcode, set through configuration, checked by a small middleware and remembered in a cookie. Off by default. This is far lighter than the current Identity/JWT stack but stops casual access from other devices on the network.
 - No secrets in the repo. The current development JWT signing key goes away with JWT.
 - LM Studio's server is only enabled for the local network on the model machine; the app never exposes it.
 - Uploaded files are validated by content type and magic bytes, not just file extension, and are served only from the uploads path.
@@ -195,11 +195,14 @@ v1 is successful when the owner can, from a phone and without touching a laptop:
 3. Record a sale and be told exactly which other listing to take down.
 4. Open a report and see what sold this month and what is stale.
 
-## 12. Open Questions
+## 12. Decisions (formerly Open Questions)
 
-1. Optional passcode: build it in M1 or skip it? (Recommendation: build it; it is small.)
-2. Which vision model is loaded in LM Studio, and on what hardware? Generation speed and image-count limits depend on it. A test with the owner's real model should happen early in M4.
-3. Preferred currency and locale (assumed USD, `en-US`).
-4. Item specifics for eBay: is a free-text "key details" field enough, or should category-specific fields come later?
-5. Should sold items' photos be archived or deleted after some time to save disk space?
-6. Is Mercari (already in the enum) wanted later? It is dropped from v1.
+1. **Passcode: build it in M1.** Optional single shared passcode, as described in section 8.
+2. **Vision model: Gemma 4 12B QAT (GGUF) in LM Studio.** Host hardware: Intel Core i7-13700F, 32 GB RAM, NVIDIA GeForce RTX 5070 with 12 GB VRAM (CUDA). A 12B QAT model should fit fully in 12 GB VRAM, but the vision encoder and image tokens add overhead, so the safe starting point is a modest context length and a low default for max images per request (start at 3 to 4, tune upward). Early in M4, run a real test with this model: measure generation time per listing with 1, 3 and 5 photos, and set the default max-images and timeout values from the results.
+3. **Currency and locale: USD, `en-US`.** Stored as defaults in `AppSettings`.
+4. **eBay item specifics: free-text "key details" field for v1.** Category-specific fields are deferred to after v1.
+5. **Sold-item photo retention: support both archive and delete.** A setting chooses the behavior and the age threshold (for example, N days after sale):
+   - *Archive:* move the photos to an `uploads/archive/` folder (optionally compressed), keeping them out of the active views.
+   - *Delete:* permanently remove the files and clear their records.
+   - Default is off (keep everything) until the owner opts in. A manual per-item "archive photos" and "delete photos" action should also exist. Deletion is irreversible and needs a confirmation step.
+6. **Mercari: maybe later.** Stays out of v1. Keep the marketplace enum and formatter interface open so Mercari can be added without a migration of existing data.

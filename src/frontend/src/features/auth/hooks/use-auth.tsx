@@ -1,6 +1,5 @@
 import {
   createContext,
-  startTransition,
   useContext,
   useEffect,
   useState,
@@ -32,9 +31,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getCurrentUser()
       .then((currentUser) => {
-        startTransition(() => {
-          setUser(currentUser);
-        });
+        // Must not be wrapped in startTransition: isBootstrapping flips to false in
+        // `finally`, and a deferred setUser would let ProtectedRoute see user=null
+        // and redirect to /login on every page reload.
+        setUser(currentUser);
       })
       .catch(() => {
         setAccessToken(null);

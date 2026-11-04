@@ -62,6 +62,25 @@ public sealed class PasscodeTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(request)).StatusCode);
     }
 
+    [Theory]
+    [InlineData("http://localhost", false)]
+    [InlineData("https://localhost", true)]
+    public async Task Access_cookie_is_secure_only_when_the_request_is_https(string baseAddress, bool expectSecure)
+    {
+        using var factory = CreateFactory("open-sesame");
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri(baseAddress),
+            AllowAutoRedirect = false
+        });
+
+        var response = await client.PostAsJsonAsync("/api/access", new { passcode = "open-sesame" });
+        var setCookie = response.Headers.GetValues("Set-Cookie").Single();
+
+        Assert.Equal(expectSecure, setCookie.Contains("secure", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("httponly", setCookie, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Fact]
     public async Task Health_check_and_frontend_files_stay_public_when_locked()
     {

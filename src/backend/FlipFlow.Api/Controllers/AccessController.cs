@@ -39,6 +39,10 @@ public sealed class AccessController(AccessPasscodeService passcode) : Controlle
         Response.Cookies.Append(AccessPasscodeService.CookieName, passcode.CreateCookieValue(), new CookieOptions
         {
             HttpOnly = true,
+            // Secure whenever the request came over HTTPS (for example behind a reverse proxy).
+            // On the intended plain-HTTP home network a Secure cookie would be dropped by the
+            // browser and the passcode would never stick.
+            Secure = Request.IsHttps,
             SameSite = SameSiteMode.Lax,
             IsEssential = true,
             Expires = DateTimeOffset.UtcNow.AddDays(90)

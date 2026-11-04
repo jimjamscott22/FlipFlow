@@ -1,62 +1,31 @@
 using FlipFlow.Domain.Entities;
 using FlipFlow.Domain.Enums;
-using FlipFlow.Infrastructure.Auth;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace FlipFlow.Infrastructure.Data.Seed;
 
+/// <summary>Applies migrations on startup and, if enabled, adds sample data to an empty database.</summary>
 public sealed class ApplicationDbInitializer(
     AppDbContext dbContext,
-    RoleManager<IdentityRole<Guid>> roleManager,
-    UserManager<AppUser> userManager,
+    IOptions<DemoDataOptions> demoOptions,
     ILogger<ApplicationDbInitializer> logger)
 {
-    private static readonly string[] Roles = ["User"];
-
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         await dbContext.Database.MigrateAsync(cancellationToken);
 
-        foreach (var role in Roles)
+        if (!demoOptions.Value.Enabled || await dbContext.Items.AnyAsync(cancellationToken))
         {
-            if (!await roleManager.RoleExistsAsync(role))
-            {
-                await roleManager.CreateAsync(new IdentityRole<Guid>(role));
-            }
+            return;
         }
 
-        const string demoEmail = "demo@flipflow.local";
-        const string demoPassword = "FlipFlow123";
+        logger.LogInformation("Seeding demo items.");
 
-        var demoUser = await userManager.FindByEmailAsync(demoEmail);
-
-        if (demoUser is null)
-        {
-            demoUser = new AppUser
+        dbContext.Items.AddRange(
+            new Item
             {
-                Email = demoEmail,
-                UserName = demoEmail,
-                DisplayName = "Demo Seller"
-            };
-
-            var creationResult = await userManager.CreateAsync(demoUser, demoPassword);
-
-            if (!creationResult.Succeeded)
-            {
-                logger.LogWarning("Demo user could not be created: {Errors}", string.Join(", ", creationResult.Errors.Select(x => x.Description)));
-                return;
-            }
-
-            await userManager.AddToRoleAsync(demoUser, "User");
-        }
-
-        if (!await dbContext.Items.AnyAsync(cancellationToken))
-        {
-            dbContext.Items.Add(new Item
-            {
-                OwnerUserId = demoUser.Id,
                 Title = "Nintendo Switch OLED",
                 Brand = "Nintendo",
                 Model = "HEG-001",
@@ -65,9 +34,19 @@ public sealed class ApplicationDbInitializer(
                 Description = "Well-kept console with dock, charger, and Joy-Cons.",
                 AskingPrice = 259.99m,
                 Status = ItemStatus.Draft
+            },
+            new Item
+            {
+                Title = "Cast iron skillet, 12 inch",
+                Brand = "Lodge",
+                Model = "L10SK3",
+                Category = "Home & Kitchen",
+                Condition = ItemCondition.LikeNew,
+                Description = "Seasoned, no rust, barely used.",
+                AskingPrice = 28m,
+                Status = ItemStatus.ReadyToList
             });
 
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

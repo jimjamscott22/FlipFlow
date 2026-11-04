@@ -10,7 +10,6 @@ src/frontend/dist/
 
 src/backend/**/bin/
 src/backend/**/obj/
-src/backend/**/Migrations/
 
 storage/
 src/backend/FlipFlow.Api/wwwroot/uploads/
@@ -21,3 +20,12 @@ src/backend/FlipFlow.Api/wwwroot/uploads/
 
 *.tsbuildinfo
 data/
+
+# Built frontend is copied here by run.sh / run.ps1
+src/backend/FlipFlow.Api/wwwroot/*
+!src/backend/FlipFlow.Api/wwwroot/.gitkeep
+
+# Local SQLite database
+*.db
+*.db-shm
+*.db-wal

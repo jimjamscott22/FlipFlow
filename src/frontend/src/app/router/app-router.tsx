@@ -1,11 +1,7 @@
-import { RouterProvider, createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom";
 import { AppShell } from "@/components/layout/app-shell";
-import { AuthLayout } from "@/components/layout/auth-layout";
-import { ProtectedRoute } from "@/features/auth/components/protected-route";
-import { AuthProvider } from "@/features/auth/hooks/use-auth";
+import { PasscodeGate } from "@/features/access/components/passcode-gate";
 import { DashboardPage } from "@/features/dashboard/pages/dashboard-page";
-import { LoginPage } from "@/features/auth/pages/login-page";
-import { RegisterPage } from "@/features/auth/pages/register-page";
 import { ItemsPage } from "@/features/items/pages/items-page";
 import { ListingsPage } from "@/features/items/pages/listings-page";
 import { NewItemPage } from "@/features/items/pages/new-item-page";
@@ -14,34 +10,17 @@ import { ItemDetailPage } from "@/features/items/pages/item-detail-page";
 const router = createBrowserRouter([
   {
     element: (
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
+      <PasscodeGate>
+        <AppShell />
+      </PasscodeGate>
     ),
     children: [
-      {
-        element: <ProtectedRoute />,
-        children: [
-          {
-            element: <AppShell />,
-            children: [
-              { path: "/", element: <Navigate to="/dashboard" replace /> },
-              { path: "/dashboard", element: <DashboardPage /> },
-              { path: "/items", element: <ItemsPage /> },
-              { path: "/items/new", element: <NewItemPage /> },
-              { path: "/items/:itemId", element: <ItemDetailPage /> },
-              { path: "/listings", element: <ListingsPage /> },
-            ],
-          },
-        ],
-      },
-      {
-        element: <AuthLayout />,
-        children: [
-          { path: "/login", element: <LoginPage /> },
-          { path: "/register", element: <RegisterPage /> },
-        ],
-      },
+      { path: "/", element: <Navigate to="/dashboard" replace /> },
+      { path: "/dashboard", element: <DashboardPage /> },
+      { path: "/items", element: <ItemsPage /> },
+      { path: "/items/new", element: <NewItemPage /> },
+      { path: "/items/:itemId", element: <ItemDetailPage /> },
+      { path: "/listings", element: <ListingsPage /> },
     ],
   },
 ]);

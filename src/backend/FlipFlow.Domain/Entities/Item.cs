@@ -5,8 +5,6 @@ namespace FlipFlow.Domain.Entities;
 
 public sealed class Item : AuditableEntity
 {
-    public Guid OwnerUserId { get; set; }
-
     public string Title { get; set; } = string.Empty;
 
     public string Brand { get; set; } = string.Empty;
@@ -28,6 +26,4 @@ public sealed class Item : AuditableEntity
     public List<ListingDraft> ListingDrafts { get; set; } = [];
 
     public List<MarketplaceListing> MarketplaceListings { get; set; } = [];
-
-    public List<RepricingRecommendation> RepricingRecommendations { get; set; } = [];
 }

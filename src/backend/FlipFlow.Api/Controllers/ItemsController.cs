@@ -1,25 +1,19 @@
-using FlipFlow.Application.Abstractions.Auth;
 using FlipFlow.Application.Abstractions.Items;
 using FlipFlow.Application.Contracts.Items;
 using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlipFlow.Api.Controllers;
 
 [ApiController]
-[Authorize]
 [Route("api/items")]
-public sealed class ItemsController(
-    ICurrentUserService currentUserService,
-    IItemService itemService) : ControllerBase
+public sealed class ItemsController(IItemService itemService) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<ItemSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<ItemSummaryDto>>> GetItems(CancellationToken cancellationToken)
     {
-        var userId = currentUserService.GetRequiredUserId();
-        var items = await itemService.GetItemsAsync(userId, cancellationToken);
+        var items = await itemService.GetItemsAsync(cancellationToken);
 
         return Ok(items);
     }
@@ -29,8 +23,7 @@ public sealed class ItemsController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ItemDetailDto>> GetItem(Guid itemId, CancellationToken cancellationToken)
     {
-        var userId = currentUserService.GetRequiredUserId();
-        var item = await itemService.GetItemAsync(userId, itemId, cancellationToken);
+        var item = await itemService.GetItemAsync(itemId, cancellationToken);
 
         return Ok(item);
     }
@@ -41,8 +34,7 @@ public sealed class ItemsController(
         [FromBody] SaveItemRequestDto request,
         CancellationToken cancellationToken)
     {
-        var userId = currentUserService.GetRequiredUserId();
-        var createdItem = await itemService.CreateItemAsync(userId, request, cancellationToken);
+        var createdItem = await itemService.CreateItemAsync(request, cancellationToken);
 
         return CreatedAtAction(nameof(GetItem), new { itemId = createdItem.Id }, createdItem);
     }
@@ -55,8 +47,7 @@ public sealed class ItemsController(
         [FromBody] SaveItemRequestDto request,
         CancellationToken cancellationToken)
     {
-        var userId = currentUserService.GetRequiredUserId();
-        var updatedItem = await itemService.UpdateItemAsync(userId, itemId, request, cancellationToken);
+        var updatedItem = await itemService.UpdateItemAsync(itemId, request, cancellationToken);
 
         return Ok(updatedItem);
     }
@@ -66,8 +57,7 @@ public sealed class ItemsController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteItem(Guid itemId, CancellationToken cancellationToken)
     {
-        var userId = currentUserService.GetRequiredUserId();
-        await itemService.DeleteItemAsync(userId, itemId, cancellationToken);
+        await itemService.DeleteItemAsync(itemId, cancellationToken);
 
         return NoContent();
     }
@@ -103,9 +93,7 @@ public sealed class ItemsController(
 
         await using var fileStream = file.OpenReadStream();
 
-        var userId = currentUserService.GetRequiredUserId();
         var photo = await itemService.AddPhotoAsync(
-            userId,
             itemId,
             fileStream,
             file.FileName,

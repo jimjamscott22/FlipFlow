@@ -1,6 +1,52 @@
 # FlipFlow
 
-FlipFlow helps users sell their used stuff online faster by assisting with item intake, condition tracking, pricing suggestions, listing generation, listing management, and repricing recommendations. The first niche is electronics, but the architecture is designed to expand into other categories later.
+FlipFlow is a personal tool for photographing, listing and tracking the things I resell. It runs on a home machine as one small web app (ASP.NET Core API + React frontend, SQLite database) that I open from my phone on the home network. See [`docs/product-spec.md`](docs/product-spec.md) for what it is meant to become and [`docs/implementation-plan.md`](docs/implementation-plan.md) for the milestones.
+
+> **Status:** milestone M1 (personal-tool baseline) is done. There are no accounts or logins: the app is meant for a trusted home network, with an optional shared passcode. The sections after "Quick start" are the original phase notes and are **historical**; they still mention accounts, Postgres and Hangfire, which have been removed. They will be rewritten in milestone M9.
+
+## Quick start
+
+Requirements: .NET 8 SDK and Node 20+.
+
+```bash
+./run.sh          # Linux / macOS / Git Bash
+.\run.ps1         # Windows PowerShell
+```
+
+This builds the frontend, copies it into the API's `wwwroot`, and starts everything on **http://localhost:5000**. Data lives in `src/backend/FlipFlow.Api/data/flipflow.db` and uploaded photos in `src/backend/FlipFlow.Api/storage/uploads/` (back both up together). Migrations are applied automatically on startup.
+
+Options (environment variables, set before running):
+
+| Variable | Effect |
+| --- | --- |
+| `ASPNETCORE_URLS=http://0.0.0.0:5000` | Reachable from other devices on your network, such as your phone. Only do this on a network you trust, and set a passcode. |
+| `Access__Passcode=...` | Requires this passcode (asked once per device, remembered for 90 days). Off when empty. |
+| `DemoData__Enabled=true` | Adds a couple of sample items to an empty database. |
+| `ConnectionStrings__DefaultConnection` | Different SQLite file, e.g. `Data Source=/path/to/flipflow.db`. Relative paths are resolved from the API project folder. |
+
+Development with hot reload (two terminals):
+
+```bash
+cd src/backend/FlipFlow.Api && dotnet run     # API on :5000 (Development: sample data on)
+cd src/frontend && npm install && npm run dev # UI on :5173, proxies /api and /storage to :5000
+```
+
+Tests and checks:
+
+```bash
+cd src/backend && dotnet test
+cd src/frontend && npm run build
+```
+
+New migration after changing entities (from `src/backend`):
+
+```bash
+dotnet ef migrations add <Name> -p FlipFlow.Infrastructure -s FlipFlow.Api
+```
+
+---
+
+## Historical notes (original phase plan)
 
 ## Architecture Proposal
 
@@ -244,57 +290,6 @@ Frontend:
 - `src/frontend/components.json`
 - `src/frontend/src/*`
 
-### Run commands
-
-Frontend:
-
-```bash
-cd src/frontend
-npm install
-npm run dev
-```
-
-Backend:
-
-```bash
-cd src/backend/FlipFlow.Api
-dotnet restore
-dotnet run
-```
-
-### Database and migrations
-
-Once the .NET SDK is installed, create the initial migration from `src/backend`:
-
-```bash
-dotnet tool install --global dotnet-ef
-dotnet ef migrations add InitialCreate \
-  --project FlipFlow.Infrastructure \
-  --startup-project FlipFlow.Api \
-  --output-dir Data/Migrations
-
-dotnet ef database update \
-  --project FlipFlow.Infrastructure \
-  --startup-project FlipFlow.Api
-```
-
-Local PostgreSQL defaults used in `appsettings.json`:
-
-```text
-Host=localhost;Port=5432;Database=flipflow;Username=postgres;Password=postgres
-```
-
-Seeded demo credentials:
-
-```text
-email: demo@flipflow.local
-password: FlipFlow123
-```
-
-### Practical note about this environment
-
-Phase 1 was scaffolded before backend verification was available in this Codex environment, so the source was created first and compilation was deferred. In the current session the frontend build was verified, while backend restore still stops early because the installed .NET SDK is missing workload resolver directories.
-
 ## What could improve later in a production SaaS version
 
 - Refresh tokens and token revocation instead of access-token-only auth
@@ -326,28 +321,6 @@ Phase 1 was scaffolded before backend verification was available in this Codex e
 - `docs/phase-2-spec-sheet.md`
 - `docs/phase-2-implementation-plan.md`
 
-### Local development services
-
-Run PostgreSQL and pgAdmin:
-
-```bash
-docker compose up -d
-```
-
-pgAdmin defaults:
-
-```text
-url: http://localhost:5050
-email: admin@flipflow.local
-password: admin
-```
-
-PostgreSQL defaults:
-
-```text
-Host=localhost;Port=5432;Database=flipflow;Username=postgres;Password=postgres
-```
-
 ### Phase 2 verification
 
 Frontend:
@@ -363,12 +336,6 @@ Backend:
 cd src/backend/FlipFlow.Api
 dotnet build
 ```
-
-### Practical note about this environment
-
-The frontend build was verified successfully in this Codex session.
-
-The backend could not be compiled end-to-end in this environment because the installed .NET SDK is missing workload resolver directories used during restore. The failure occurs before project compilation, so it does not currently provide code-level diagnostics. Once the local SDK installation is healthy, run `dotnet build` and generate the first migration.
 
 ## Milestone Summary
 

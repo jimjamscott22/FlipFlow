@@ -35,9 +35,6 @@ public sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<Glob
                         error = x.ErrorMessage
                     })
                 }),
-            UnauthorizedAccessException unauthorizedException => (
-                StatusCodes.Status401Unauthorized,
-                new { message = unauthorizedException.Message }),
             KeyNotFoundException notFoundException => (
                 StatusCodes.Status404NotFound,
                 new { message = notFoundException.Message }),

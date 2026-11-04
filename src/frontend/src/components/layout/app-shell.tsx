@@ -1,8 +1,6 @@
 import { LayoutDashboard, ListChecks, Package2, PlusSquare } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/features/auth/hooks/use-auth";
 
 const navigation = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -12,27 +10,15 @@ const navigation = [
 ];
 
 export function AppShell() {
-  const { user, logout } = useAuth();
-
   return (
     <div className="min-h-screen">
       <header className="border-b border-white/70 bg-white/70 backdrop-blur">
-        <div className="container flex items-center justify-between py-4">
+        <div className="container flex items-center py-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-500">
               FlipFlow
             </p>
             <h1 className="text-xl font-bold text-slate-900">Seller workspace</h1>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-sm font-semibold">{user?.displayName}</p>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
-            </div>
-            <Button variant="outline" onClick={logout}>
-              Sign out
-            </Button>
           </div>
         </div>
       </header>

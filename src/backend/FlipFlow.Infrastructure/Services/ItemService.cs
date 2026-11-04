@@ -14,30 +14,26 @@ public sealed class ItemService(
     IFileStorageService fileStorageService,
     ILogger<ItemService> logger) : IItemService
 {
-    public async Task<IReadOnlyList<ItemSummaryDto>> GetItemsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ItemSummaryDto>> GetItemsAsync(CancellationToken cancellationToken = default)
     {
         var items = await dbContext.Items
             .AsNoTracking()
             .Include(x => x.Photos)
-            .Where(x => x.OwnerUserId == userId)
             .OrderByDescending(x => x.UpdatedAtUtc)
             .ToListAsync(cancellationToken);
 
         return items.Select(MapSummary).ToList();
     }
 
-    public async Task<ItemDetailDto> GetItemAsync(Guid userId, Guid itemId, CancellationToken cancellationToken = default)
+    public async Task<ItemDetailDto> GetItemAsync(Guid itemId, CancellationToken cancellationToken = default)
     {
-        var item = await GetOwnedItemAsync(userId, itemId, cancellationToken);
+        var item = await GetItemEntityAsync(itemId, cancellationToken);
         return MapDetail(item);
     }
 
-    public async Task<ItemDetailDto> CreateItemAsync(Guid userId, SaveItemRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<ItemDetailDto> CreateItemAsync(SaveItemRequestDto request, CancellationToken cancellationToken = default)
     {
-        var item = new Item
-        {
-            OwnerUserId = userId
-        };
+        var item = new Item();
 
         Apply(item, request);
 
@@ -48,12 +44,11 @@ public sealed class ItemService(
     }
 
     public async Task<ItemDetailDto> UpdateItemAsync(
-        Guid userId,
         Guid itemId,
         SaveItemRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var item = await GetOwnedItemAsync(userId, itemId, cancellationToken);
+        var item = await GetItemEntityAsync(itemId, cancellationToken);
 
         Apply(item, request);
 
@@ -62,9 +57,9 @@ public sealed class ItemService(
         return MapDetail(item);
     }
 
-    public async Task DeleteItemAsync(Guid userId, Guid itemId, CancellationToken cancellationToken = default)
+    public async Task DeleteItemAsync(Guid itemId, CancellationToken cancellationToken = default)
     {
-        var item = await GetOwnedItemAsync(userId, itemId, cancellationToken);
+        var item = await GetItemEntityAsync(itemId, cancellationToken);
         var photoPaths = item.Photos.Select(x => x.RelativePath).ToList();
 
         dbContext.Items.Remove(item);
@@ -84,14 +79,13 @@ public sealed class ItemService(
     }
 
     public async Task<ItemPhotoDto> AddPhotoAsync(
-        Guid userId,
         Guid itemId,
         Stream fileStream,
         string fileName,
         string contentType,
         CancellationToken cancellationToken = default)
     {
-        var item = await GetOwnedItemAsync(userId, itemId, cancellationToken);
+        var item = await GetItemEntityAsync(itemId, cancellationToken);
 
         if (item.Photos.Count >= ItemPhotoUploadRules.MaxPhotosPerItem)
         {
@@ -124,11 +118,11 @@ public sealed class ItemService(
         return MapPhoto(photo);
     }
 
-    private async Task<Item> GetOwnedItemAsync(Guid userId, Guid itemId, CancellationToken cancellationToken)
+    private async Task<Item> GetItemEntityAsync(Guid itemId, CancellationToken cancellationToken)
     {
         var item = await dbContext.Items
             .Include(x => x.Photos)
-            .FirstOrDefaultAsync(x => x.OwnerUserId == userId && x.Id == itemId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == itemId, cancellationToken);
 
         return item ?? throw new KeyNotFoundException("The requested item could not be found.");
     }

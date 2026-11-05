@@ -10,5 +10,11 @@ export default defineConfig({
     },
     server: {
         port: 5173,
+        // In development the frontend runs on :5173 and the API on :5000. Proxying keeps the
+        // browser on one origin, so the passcode cookie works and no CORS setup is needed.
+        proxy: {
+            "/api": "http://localhost:5000",
+            "/storage": "http://localhost:5000",
+        },
     },
 });

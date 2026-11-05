@@ -1,22 +1,12 @@
 import { env } from "@/lib/env";
 
-const ACCESS_TOKEN_KEY = "flipflow.access-token";
+/** Fired when the API answers 401 "passcode_required", so the passcode screen can appear. */
+export const PASSCODE_REQUIRED_EVENT = "flipflow:passcode-required";
 
-export function getAccessToken() {
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY);
-}
-
-export function setAccessToken(token: string | null) {
-  if (!token) {
-    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-    return;
-  }
-
-  window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
-}
-
-type RequestOptions = RequestInit & {
-  authenticated?: boolean;
+type ErrorPayload = {
+  message?: string;
+  code?: string;
+  errors?: { error?: string }[];
 };
 
 export function resolveApiAssetUrl(path: string | null | undefined) {
@@ -28,10 +18,16 @@ export function resolveApiAssetUrl(path: string | null | undefined) {
     return path;
   }
 
-  return `${new URL(env.apiBaseUrl).origin}${path.startsWith("/") ? path : `/${path}`}`;
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+
+  // Uploaded photos are served by the same origin. Only an absolute API base
+  // URL (a custom VITE_API_BASE_URL) needs its origin prepended.
+  return /^https?:\/\//i.test(env.apiBaseUrl)
+    ? `${new URL(env.apiBaseUrl).origin}${normalized}`
+    : normalized;
 }
 
-export async function apiRequest<T>(path: string, options: RequestOptions = {}) {
+export async function apiRequest<T>(path: string, options: RequestInit = {}) {
   const headers = new Headers(options.headers);
   const isFormData = options.body instanceof FormData;
 
@@ -39,21 +35,19 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
     headers.set("Content-Type", "application/json");
   }
 
-  if (options.authenticated) {
-    const token = getAccessToken();
-
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
-  }
-
   const response = await fetch(`${env.apiBaseUrl}${path}`, {
+    credentials: "same-origin",
     ...options,
     headers,
   });
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => null);
+    const payload: ErrorPayload | null = await response.json().catch(() => null);
+
+    if (response.status === 401 && payload?.code === "passcode_required") {
+      window.dispatchEvent(new Event(PASSCODE_REQUIRED_EVENT));
+    }
+
     const message =
       payload?.message ??
       payload?.errors?.[0]?.error ??

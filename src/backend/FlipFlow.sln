@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlipFlow.Infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlipFlow.Api", "FlipFlow.Api\FlipFlow.Api.csproj", "{D5707C94-2E61-4256-AAF1-05BAE90B30B6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlipFlow.Tests", "FlipFlow.Tests\FlipFlow.Tests.csproj", "{4E9C9AB3-747D-4FB8-B8B4-0BB2F3DA6E04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{D5707C94-2E61-4256-AAF1-05BAE90B30B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5707C94-2E61-4256-AAF1-05BAE90B30B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5707C94-2E61-4256-AAF1-05BAE90B30B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E9C9AB3-747D-4FB8-B8B4-0BB2F3DA6E04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E9C9AB3-747D-4FB8-B8B4-0BB2F3DA6E04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E9C9AB3-747D-4FB8-B8B4-0BB2F3DA6E04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E9C9AB3-747D-4FB8-B8B4-0BB2F3DA6E04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

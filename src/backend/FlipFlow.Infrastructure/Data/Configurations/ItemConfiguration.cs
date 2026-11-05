@@ -32,9 +32,6 @@ public sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
             .HasMaxLength(4000)
             .IsRequired();
 
-        builder.Property(x => x.AskingPrice)
-            .HasPrecision(10, 2);
-
         builder.HasMany(x => x.Photos)
             .WithOne(x => x.Item)
             .HasForeignKey(x => x.ItemId)
@@ -50,12 +47,6 @@ public sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
             .HasForeignKey(x => x.ItemId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(x => x.RepricingRecommendations)
-            .WithOne(x => x.Item)
-            .HasForeignKey(x => x.ItemId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasIndex(x => x.OwnerUserId);
         builder.HasIndex(x => x.Status);
     }
 }

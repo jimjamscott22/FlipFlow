@@ -1,13 +1,10 @@
-@FlipFlow_Api_HostAddress = http://localhost:5277
+@FlipFlow_Api_HostAddress = http://localhost:5000
 
 ### Health
 GET {{FlipFlow_Api_HostAddress}}/api/health
 
-### Login with demo account
-POST {{FlipFlow_Api_HostAddress}}/api/auth/login
-Content-Type: application/json
+### Is a passcode required?
+GET {{FlipFlow_Api_HostAddress}}/api/access
 
-{
-  "email": "demo@flipflow.local",
-  "password": "FlipFlow123"
-}
+### List items
+GET {{FlipFlow_Api_HostAddress}}/api/items

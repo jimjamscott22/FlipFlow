@@ -4,5 +4,5 @@ namespace FlipFlow.Application.Abstractions.Common;
 
 public interface IDashboardService
 {
-    Task<DashboardSummaryDto> GetSummaryAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<DashboardSummaryDto> GetSummaryAsync(CancellationToken cancellationToken = default);
 }

@@ -12,9 +12,6 @@ public sealed class MarketplaceListingConfiguration : IEntityTypeConfiguration<M
 
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.ListedPrice)
-            .HasPrecision(10, 2);
-
         builder.Property(x => x.ExternalListingId)
             .HasMaxLength(200);
 

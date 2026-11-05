@@ -3,17 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { apiRequest } from "@/lib/api-client";
 
 type DashboardSummary = {
-  displayName: string;
   totalItems: number;
   draftItems: number;
   activeListings: number;
-  pendingRecommendations: number;
 };
 
 async function getDashboardSummary() {
   return apiRequest<DashboardSummary>("/dashboard/summary", {
     method: "GET",
-    authenticated: true,
   });
 }
 
@@ -27,18 +24,17 @@ export function DashboardPage() {
     { label: "Items", value: query.data?.totalItems ?? 0 },
     { label: "Drafts", value: query.data?.draftItems ?? 0 },
     { label: "Live listings", value: query.data?.activeListings ?? 0 },
-    { label: "Pending repricing", value: query.data?.pendingRecommendations ?? 0 },
   ];
 
   return (
     <div className="space-y-6">
       <section className="rounded-[2rem] bg-slate-950 px-8 py-10 text-white">
-        <p className="text-sm uppercase tracking-[0.3em] text-amber-300">Phase 2</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-amber-300">FlipFlow</p>
         <h2 className="mt-4 text-4xl font-bold">
-          {query.data ? `Welcome back, ${query.data.displayName}.` : "Loading your dashboard..."}
+          Your inventory at a glance.
         </h2>
         <p className="mt-3 max-w-2xl text-slate-300">
-          Inventory CRUD and item photo uploads are now layered on top of the authenticated seller workspace.
+          A personal tool for photographing, listing and tracking the things you resell.
         </p>
       </section>
 
@@ -50,7 +46,7 @@ export function DashboardPage() {
         </Card>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
           <Card key={card.label}>
             <CardHeader>
@@ -61,7 +57,7 @@ export function DashboardPage() {
         ))}
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-4">
         <Card>
           <CardHeader>
             <CardTitle>Next build target</CardTitle>
@@ -70,17 +66,6 @@ export function DashboardPage() {
           <CardContent className="space-y-2 text-sm text-muted-foreground">
             <p>Items now have full create, edit, detail, and upload flows.</p>
             <p>The next layer will turn those records into reusable listing content drafts.</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Demo access</CardTitle>
-            <CardDescription>Seeded account for local development</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>Email: <span className="font-semibold">demo@flipflow.local</span></p>
-            <p>Password: <span className="font-semibold">FlipFlow123</span></p>
           </CardContent>
         </Card>
       </section>

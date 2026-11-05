@@ -1,19 +1,12 @@
 using FlipFlow.Domain.Common;
 using FlipFlow.Domain.Entities;
-using FlipFlow.Infrastructure.Auth;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using FlipFlow.Infrastructure.Data.Converters;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlipFlow.Infrastructure.Data;
 
-public sealed class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<Item> Items => Set<Item>();
 
     public DbSet<ItemPhoto> ItemPhotos => Set<ItemPhoto>();
@@ -22,9 +15,17 @@ public sealed class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>
 
     public DbSet<MarketplaceListing> MarketplaceListings => Set<MarketplaceListing>();
 
-    public DbSet<PlatformAccount> PlatformAccounts => Set<PlatformAccount>();
-
-    public DbSet<RepricingRecommendation> RepricingRecommendations => Set<RepricingRecommendation>();
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        // SQLite has no native decimal or DateTimeOffset, and the EF provider cannot
+        // order or aggregate them reliably. Money is stored as integer cents and
+        // timestamps as UTC ticks, once, here, so every entity gets it automatically
+        // and SUM / ORDER BY / comparisons translate to SQL.
+        configurationBuilder.Properties<decimal>().HaveConversion<DecimalToCentsConverter>();
+        configurationBuilder.Properties<decimal?>().HaveConversion<NullableDecimalToCentsConverter>();
+        configurationBuilder.Properties<DateTimeOffset>().HaveConversion<DateTimeOffsetToTicksConverter>();
+        configurationBuilder.Properties<DateTimeOffset?>().HaveConversion<NullableDateTimeOffsetToTicksConverter>();
+    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

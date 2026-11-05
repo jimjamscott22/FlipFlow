@@ -6,21 +6,35 @@ namespace FlipFlow.Api.Security;
 /// <summary>
 /// Optional single shared passcode. If <c>Access:Passcode</c> is empty the feature is off
 /// and everything is open (the app is meant for a trusted home network).
+///
+/// The cookie value is an HMAC of the passcode under a random secret that only the server
+/// holds (stored in <c>Access:KeyPath</c>, default <c>data/access.key</c>). Because the value
+/// cannot be computed without that secret, the only way to test a guess is the submit
+/// endpoint, which is slowed down. The cookie stays valid across restarts, and changing
+/// the passcode invalidates every existing cookie.
 /// </summary>
 public sealed class AccessPasscodeService
 {
     public const string CookieName = "flipflow_access";
 
+    private readonly byte[] _key = [];
     private readonly byte[]? _expectedToken;
 
-    public AccessPasscodeService(IConfiguration configuration)
+    public AccessPasscodeService(
+        IConfiguration configuration,
+        IHostEnvironment environment,
+        ILogger<AccessPasscodeService> logger)
     {
         var passcode = configuration["Access:Passcode"];
 
-        if (!string.IsNullOrWhiteSpace(passcode))
+        if (string.IsNullOrWhiteSpace(passcode))
         {
-            _expectedToken = ComputeToken(passcode);
+            return;
         }
+
+        var keyPath = configuration["Access:KeyPath"] ?? "data/access.key";
+        _key = LoadOrCreateKey(Path.GetFullPath(Path.Combine(environment.ContentRootPath, keyPath)), logger);
+        _expectedToken = ComputeToken(passcode);
     }
 
     public bool IsRequired => _expectedToken is not null;
@@ -60,8 +74,41 @@ public sealed class AccessPasscodeService
         }
     }
 
-    private static byte[] ComputeToken(string passcode)
+    private byte[] ComputeToken(string passcode)
     {
-        return SHA256.HashData(Encoding.UTF8.GetBytes($"flipflow-access-v1:{passcode}"));
+        return HMACSHA256.HashData(_key, Encoding.UTF8.GetBytes(passcode));
+    }
+
+    private static byte[] LoadOrCreateKey(string path, ILogger logger)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                var existing = File.ReadAllBytes(path);
+
+                if (existing.Length >= 32)
+                {
+                    return existing;
+                }
+            }
+
+            var created = RandomNumberGenerator.GetBytes(32);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllBytes(path, created);
+
+            if (!OperatingSystem.IsWindows())
+            {
+                File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            }
+
+            return created;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Still secure, but everyone has to re-enter the passcode after each restart.
+            logger.LogWarning(exception, "Could not read or write the access key at {Path}; using a temporary key for this run.", path);
+            return RandomNumberGenerator.GetBytes(32);
+        }
     }
 }
